@@ -1,0 +1,33 @@
+node_modules/
+
+# env файли
+.env
+.env.*
+
+# логи
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# системні файли
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# білди / кеш
+dist/
+build/
+.cache/
+
+# pdf, docs 
+*.pdf
+*.doc
+*.docx
+
+# misc
+coverage/
