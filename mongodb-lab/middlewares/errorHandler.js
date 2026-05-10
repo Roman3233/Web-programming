@@ -22,6 +22,10 @@ module.exports = (err, req, res, next) => {
  }));
  }
 
+ const timestamp = new Date().toISOString();
+ console.error(`[${timestamp}] ${req.method} ${req.originalUrl}`);
+ console.error(err.stack || err.message || err);
+
  return res.status(statusCode).json({
  success: false,
  message,

@@ -14,12 +14,12 @@ app.use(express.json());
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 
-// ---- 404 (після всіх роутів) ----
+// 404 middleware after all routes
 app.use((req, res, next) => {
- next(ApiError.notFound('Маршрут не знайдено'));
+ next(new ApiError(404, 'Маршрут не знайдено'));
 });
 
-// ---- error handler (обов'язково останній) ----
+// Error handler must be the last middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
