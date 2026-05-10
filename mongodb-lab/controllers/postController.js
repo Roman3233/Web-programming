@@ -13,11 +13,8 @@ const buildPostsMatchStage = (query) => {
  matchStage.tags = query.tag;
  }
 
- if (query.minLikes) {
- const minLikes = Number(query.minLikes);
- if (!Number.isNaN(minLikes)) {
- matchStage.likes = { $gte: minLikes };
- }
+ if (query.minLikes !== undefined) {
+ matchStage.likes = { $gte: query.minLikes };
  }
 
  if (query.q) {
@@ -103,8 +100,8 @@ exports.createPost = async (req, res) => {
 // Отримання всіх постів з пагінацією, фільтрацією та сортуванням
 exports.getAllPosts = async (req, res) => {
  try {
- const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
- const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+ const page = Math.max(req.query.page || 1, 1);
+ const limit = Math.max(req.query.limit || 10, 1);
  const skip = (page - 1) * limit;
  const matchStage = buildPostsMatchStage(req.query);
  const sortStage = buildPostsSortStage(req.query.sortBy, req.query.sortOrder);
@@ -128,7 +125,7 @@ exports.getAllPosts = async (req, res) => {
  filters: {
  author: req.query.author || null,
  tag: req.query.tag || null,
- minLikes: req.query.minLikes || null,
+ minLikes: req.query.minLikes ?? null,
  q: req.query.q || null
  },
  sorting: {
