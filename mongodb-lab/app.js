@@ -3,7 +3,6 @@ const express = require('express');
 const connectDB = require('./config/database');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
-// error stuff
 const ApiError = require('./errors/ApiError');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -14,11 +13,13 @@ connectDB();
 app.use(express.json());
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
+
 // ---- 404 (після всіх роутів) ----
 app.use((req, res, next) => {
  next(ApiError.notFound('Маршрут не знайдено'));
 });
-// ---- error handler (ОБОВʼЯЗКОВО останній) ----
+
+// ---- error handler (обов'язково останній) ----
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

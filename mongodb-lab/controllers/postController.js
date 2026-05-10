@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
+const ApiError = require('../errors/ApiError');
+const asyncHandler = require('../middlewares/asyncHandler');
 
 const buildPostsMatchStage = (query) => {
  const matchStage = {};
@@ -70,10 +71,7 @@ const buildPostsAggregationPipeline = ({ matchStage, sortStage, skip = 0, limit 
  return pipeline;
 };
 
-// ==================== CREATE ====================
-// Створення нового поста
-exports.createPost = async (req, res) => {
- try {
+exports.createPost = asyncHandler(async (req, res) => {
  const { title, content, author, tags } = req.body;
 
  const post = await Post.create({
@@ -88,18 +86,9 @@ exports.createPost = async (req, res) => {
  data: post,
  message: 'Пост успішно створено'
  });
- } catch (error) {
- res.status(400).json({
- success: false,
- message: error.message
- });
- }
-};
+});
 
-// ==================== READ ====================
-// Отримання всіх постів з пагінацією, фільтрацією та сортуванням
-exports.getAllPosts = async (req, res) => {
- try {
+exports.getAllPosts = asyncHandler(async (req, res) => {
  const page = Math.max(req.query.page || 1, 1);
  const limit = Math.max(req.query.limit || 10, 1);
  const skip = (page - 1) * limit;
@@ -134,66 +123,30 @@ exports.getAllPosts = async (req, res) => {
  },
  data: posts
  });
- } catch (error) {
- res.status(500).json({
- success: false,
- message: error.message
- });
- }
-};
+});
 
-// Отримання одного поста з коментарями
-exports.getPostById = async (req, res) => {
- try {
- if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
- return res.status(400).json({
- success: false,
- message: 'Некоректний ID поста'
- });
- }
-
- const [post] = await Post.aggregate(
- buildPostsAggregationPipeline({
- matchStage: { _id: new mongoose.Types.ObjectId(req.params.id) },
- sortStage: { _id: -1 }
- })
- );
+exports.getPostById = asyncHandler(async (req, res) => {
+ const post = await Post.findById(req.params.id);
 
  if (!post) {
- return res.status(404).json({
- success: false,
- message: 'Пост не знайдено'
- });
+ throw ApiError.notFound('Пост не знайдено');
  }
 
- const comments = await Comment.find({ post: post._id })
- .sort({ createdAt: -1 });
+ const comments = await Comment.find({ post: post._id }).sort({ createdAt: -1 });
 
  res.status(200).json({
  success: true,
- data: {
- post,
- comments
- }
+ data: { post, comments }
  });
- } catch (error) {
- res.status(500).json({
- success: false,
- message: error.message
- });
- }
-};
+});
 
-// Пошук постів
-exports.searchPosts = async (req, res) => {
- try {
+exports.searchPosts = asyncHandler(async (req, res) => {
  const { q } = req.query;
 
  if (!q) {
- return res.status(400).json({
- success: false,
- message: 'Пошуковий запит q є обов’язковим'
- });
+ throw ApiError.badRequest('Validation error', [
+ { field: 'q', msg: 'q: is required' }
+ ]);
  }
 
  const posts = await Post.aggregate([
@@ -231,18 +184,9 @@ exports.searchPosts = async (req, res) => {
  count: posts.length,
  data: posts
  });
- } catch (error) {
- res.status(500).json({
- success: false,
- message: error.message
- });
- }
-};
+});
 
-// ==================== UPDATE ====================
-// Оновлення поста
-exports.updatePost = async (req, res) => {
- try {
+exports.updatePost = asyncHandler(async (req, res) => {
  const { title, content, tags } = req.body;
 
  const post = await Post.findByIdAndUpdate(
@@ -260,10 +204,7 @@ exports.updatePost = async (req, res) => {
  );
 
  if (!post) {
- return res.status(404).json({
- success: false,
- message: 'Пост не знайдено'
- });
+ throw ApiError.notFound('Пост не знайдено');
  }
 
  res.status(200).json({
@@ -271,17 +212,9 @@ exports.updatePost = async (req, res) => {
  data: post,
  message: 'Пост успішно оновлено'
  });
- } catch (error) {
- res.status(400).json({
- success: false,
- message: error.message
- });
- }
-};
+});
 
-// Збільшення лічильника лайків
-exports.likePost = async (req, res) => {
- try {
+exports.likePost = asyncHandler(async (req, res) => {
  const post = await Post.findByIdAndUpdate(
  req.params.id,
  { $inc: { likes: 1 } },
@@ -289,10 +222,7 @@ exports.likePost = async (req, res) => {
  );
 
  if (!post) {
- return res.status(404).json({
- success: false,
- message: 'Пост не знайдено'
- });
+ throw ApiError.notFound('Пост не знайдено');
  }
 
  res.status(200).json({
@@ -300,25 +230,13 @@ exports.likePost = async (req, res) => {
  data: post,
  message: 'Лайк додано'
  });
- } catch (error) {
- res.status(500).json({
- success: false,
- message: error.message
- });
- }
-};
+});
 
-// ==================== DELETE ====================
-// Видалення поста та всіх його коментарів
-exports.deletePost = async (req, res) => {
- try {
+exports.deletePost = asyncHandler(async (req, res) => {
  const post = await Post.findById(req.params.id);
 
  if (!post) {
- return res.status(404).json({
- success: false,
- message: 'Пост не знайдено'
- });
+ throw ApiError.notFound('Пост не знайдено');
  }
 
  await Comment.deleteMany({ post: post._id });
@@ -328,10 +246,4 @@ exports.deletePost = async (req, res) => {
  success: true,
  message: 'Пост та всі коментарі видалено'
  });
- } catch (error) {
- res.status(500).json({
- success: false,
- message: error.message
- });
- }
-};
+});
