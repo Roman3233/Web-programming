@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Events</title>
+</head>
+<body>
+    <h1>Події</h1>
+
+    <nav>
+        <a href="/login.html">Увійти</a> |
+        <a href="/register.html">Реєстрація</a> |
+        <a href="/create.html">Додати подію</a>
+    </nav>
+
+    <button id="logoutBtn" type="button">Вийти</button>
+
+    <p id="message"></p>
+    <ul id="eventList"></ul>
+
+    <script>
+        async function loadEvents() {
+            const response = await fetch('/api/events');
+            const data = await response.json();
+            const list = document.getElementById('eventList');
+            const message = document.getElementById('message');
+
+            if (!response.ok) {
+                message.textContent = data.message || 'Не вдалося завантажити події';
+                list.innerHTML = '';
+                return;
+            }
+
+            if (!data.data.length) {
+                list.innerHTML = '<li>Подій поки немає</li>';
+                return;
+            }
+
+            list.innerHTML = data.data.map((event) => `
+                <li>
+                    <strong>${event.name}</strong> - ${event.sport}<br>
+                    Дата: ${new Date(event.date).toLocaleString('uk-UA')}<br>
+                    Локація: ${event.location}<br>
+                    Макс. учасників: ${event.maxParticipants}
+                </li>
+            `).join('');
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        });
+
+        loadEvents();
+    </script>
+</body>
+</html>

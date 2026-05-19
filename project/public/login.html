@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вхід</title>
+</head>
+<body>
+    <h1>Вхід</h1>
+
+    <form id="loginForm">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Пароль" required>
+        <button type="submit">Увійти</button>
+    </form>
+
+    <p id="message"></p>
+    <p><a href="/register.html">Створити акаунт</a></p>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const body = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+            const message = document.getElementById('message');
+
+            if (!response.ok) {
+                message.textContent = data.message || 'Помилка входу';
+                return;
+            }
+
+            localStorage.setItem('token', data.token);
+            window.location.href = '/index.html';
+        });
+    </script>
+</body>
+</html>
