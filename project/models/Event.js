@@ -35,6 +35,11 @@ const eventSchema = new mongoose.Schema({
         required: [true, 'Max participants is required'],
         min: [1, 'Max participants must be at least 1'],
         max: [100000, 'Max participants must be at most 100000']
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
 }, {
     timestamps: true
