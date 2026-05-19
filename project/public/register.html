@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Реєстрація</title>
+</head>
+<body>
+    <h1>Реєстрація</h1>
+
+    <form id="registerForm">
+        <input type="text" id="name" placeholder="Ім'я" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Пароль" required>
+        <input type="password" id="confirmPassword" placeholder="Підтвердіть пароль" required>
+        <button type="submit">Зареєструватися</button>
+    </form>
+
+    <p id="message"></p>
+    <p><a href="/login.html">Вже є акаунт? Увійти</a></p>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const body = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                confirmPassword: document.getElementById('confirmPassword').value
+            };
+
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+            const message = document.getElementById('message');
+
+            if (!response.ok) {
+                message.textContent = data.message || 'Помилка реєстрації';
+                return;
+            }
+
+            localStorage.setItem('token', data.token);
+            message.textContent = 'Реєстрація успішна!';
+            setTimeout(() => {
+                window.location.href = '/index.html';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

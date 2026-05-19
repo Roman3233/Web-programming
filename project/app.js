@@ -11,6 +11,7 @@ const port = process.env.PORT || 3000;
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
 
 app.use(express.json());
+app.use(express.static('public'));
 
 app.get('/', (req, res) => {
     res.json({

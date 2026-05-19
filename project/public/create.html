@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Створити подію</title>
+</head>
+<body>
+    <h1>Додати подію</h1>
+
+    <form id="createForm">
+        <input type="text" id="name" placeholder="Назва події" required>
+        <input type="text" id="sport" placeholder="Вид спорту" required>
+        <input type="datetime-local" id="date" required>
+        <input type="text" id="location" placeholder="Локація" required>
+        <input type="number" id="maxParticipants" placeholder="Макс. учасників" min="1" required>
+        <button type="submit">Додати</button>
+    </form>
+
+    <p id="message"></p>
+    <p><a href="/index.html">Назад до списку</a></p>
+
+    <script>
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const token = localStorage.getItem('token');
+            const message = document.getElementById('message');
+
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const body = {
+                name: document.getElementById('name').value,
+                sport: document.getElementById('sport').value,
+                date: new Date(document.getElementById('date').value).toISOString(),
+                location: document.getElementById('location').value,
+                maxParticipants: Number(document.getElementById('maxParticipants').value)
+            };
+
+            const response = await fetch('/api/events', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                message.textContent = data.message || 'Не вдалося створити подію';
+                return;
+            }
+
+            message.textContent = 'Подію додано!';
+            setTimeout(() => {
+                window.location.href = '/index.html';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
