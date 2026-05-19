@@ -31,6 +31,17 @@ app.use((err, req, res, next) => {
         err = new AppError(err.message, 400);
     } else if (err.name === 'CastError') {
         err = new AppError('Некоректний ID ресурсу', 400);
+    } else if (err.code === 11000) {
+        const field = Object.keys(err.keyValue || {})[0] || 'field';
+        err = new AppError(`Значення поля ${field} має бути унікальним`, 409);
+    } else if (err.name === 'JsonWebTokenError') {
+        err = new AppError('Невірний токен. Увійдіть знову', 401);
+    } else if (err.name === 'TokenExpiredError') {
+        err = new AppError('Термін дії токена вийшов. Увійдіть знову', 401);
+    }
+
+    if (!err.isOperational) {
+        console.error('Unhandled error:', err);
     }
 
     const statusCode = err.statusCode || 500;
@@ -42,6 +53,16 @@ app.use((err, req, res, next) => {
         ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
 });
+
+if (!process.env.JWT_SECRET) {
+    console.error('JWT configuration error: set JWT_SECRET in .env');
+    process.exit(1);
+}
+
+if (!process.env.JWT_EXPIRES_IN) {
+    console.error('JWT configuration error: set JWT_EXPIRES_IN in .env');
+    process.exit(1);
+}
 
 if (!mongoUri) {
     console.error('MongoDB connection error: set MONGO_URI or MONGODB_URI in .env');
