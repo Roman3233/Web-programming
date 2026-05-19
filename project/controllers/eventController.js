@@ -1,86 +1,48 @@
-const Event = require('../models/Event');
-const AppError = require('../utils/AppError');
+const catchAsync = require('../utils/catchAsync');
+const eventService = require('../services/eventService');
 
-exports.getAllEvents = async (req, res, next) => {
-    try {
-        const events = await Event.find().populate('createdBy', 'name email');
+exports.getAllEvents = catchAsync(async (req, res) => {
+    const events = await eventService.getAllEvents();
 
-        res.status(200).json({
-            success: true,
-            count: events.length,
-            data: events
-        });
-    } catch (err) {
-        next(err);
-    }
-};
+    res.status(200).json({
+        success: true,
+        count: events.length,
+        data: events
+    });
+});
 
-exports.getEvent = async (req, res, next) => {
-    try {
-        const event = await Event.findById(req.params.id).populate('createdBy', 'name email');
+exports.getEvent = catchAsync(async (req, res) => {
+    const event = await eventService.getEventById(req.params.id);
 
-        if (!event) {
-            return next(new AppError('Подію не знайдено', 404));
-        }
+    res.status(200).json({
+        success: true,
+        data: event
+    });
+});
 
-        res.status(200).json({
-            success: true,
-            data: event
-        });
-    } catch (err) {
-        next(err);
-    }
-};
+exports.createEvent = catchAsync(async (req, res) => {
+    const event = await eventService.createEvent(req.body, req.user._id);
 
-exports.createEvent = async (req, res, next) => {
-    try {
-        const event = await Event.create({
-            ...req.body,
-            createdBy: req.user._id
-        });
+    res.status(201).json({
+        success: true,
+        data: event
+    });
+});
 
-        res.status(201).json({
-            success: true,
-            data: event
-        });
-    } catch (err) {
-        next(err);
-    }
-};
+exports.updateEvent = catchAsync(async (req, res) => {
+    const event = await eventService.updateEvent(req.params.id, req.body, req.user);
 
-exports.updateEvent = async (req, res, next) => {
-    try {
-        const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        });
+    res.status(200).json({
+        success: true,
+        data: event
+    });
+});
 
-        if (!event) {
-            return next(new AppError('Подію не знайдено', 404));
-        }
+exports.deleteEvent = catchAsync(async (req, res) => {
+    await eventService.deleteEvent(req.params.id);
 
-        res.status(200).json({
-            success: true,
-            data: event
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
-exports.deleteEvent = async (req, res, next) => {
-    try {
-        const event = await Event.findByIdAndDelete(req.params.id);
-
-        if (!event) {
-            return next(new AppError('Подію не знайдено', 404));
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'Подію видалено'
-        });
-    } catch (err) {
-        next(err);
-    }
-};
+    res.status(200).json({
+        success: true,
+        message: 'Подію видалено'
+    });
+});
