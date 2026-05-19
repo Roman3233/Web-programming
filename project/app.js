@@ -27,6 +27,12 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
+    if (err.name === 'ValidationError') {
+        err = new AppError(err.message, 400);
+    } else if (err.name === 'CastError') {
+        err = new AppError('Некоректний ID ресурсу', 400);
+    }
+
     const statusCode = err.statusCode || 500;
     const message = err.isOperational ? err.message : 'Внутрішня помилка сервера';
 
