@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const authRoutes = require('./routes/authRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const AppError = require('./utils/AppError');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,11 +20,20 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/events', eventRoutes);
 
-app.use((req, res) => {
-    res.status(404).json({
+app.use((req, res, next) => {
+    next(new AppError(`Маршрут ${req.originalUrl} не знайдено`, 404));
+});
+
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    const message = err.isOperational ? err.message : 'Внутрішня помилка сервера';
+
+    res.status(statusCode).json({
         success: false,
-        message: 'Route not found'
+        message,
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
 });
 
