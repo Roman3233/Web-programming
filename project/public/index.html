@@ -20,8 +20,12 @@
     <ul id="eventList"></ul>
 
     <script>
+        const API_URL = 'http://localhost:3000';
+
         async function loadEvents() {
-            const response = await fetch('/api/events');
+            const response = await fetch(`${API_URL}/api/events`, {
+                credentials: 'include'
+            });
             const data = await response.json();
             const list = document.getElementById('eventList');
             const message = document.getElementById('message');
@@ -47,8 +51,12 @@
             `).join('');
         }
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('token');
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await fetch(`${API_URL}/api/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+
             window.location.href = '/login.html';
         });
 

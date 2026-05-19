@@ -20,6 +20,8 @@
     <p><a href="/login.html">Вже є акаунт? Увійти</a></p>
 
     <script>
+        const API_URL = 'http://localhost:3000';
+
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -30,8 +32,9 @@
                 confirmPassword: document.getElementById('confirmPassword').value
             };
 
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
@@ -44,7 +47,6 @@
                 return;
             }
 
-            localStorage.setItem('token', data.token);
             message.textContent = 'Реєстрація успішна!';
             setTimeout(() => {
                 window.location.href = '/index.html';
