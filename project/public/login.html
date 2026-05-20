@@ -18,6 +18,8 @@
     <p><a href="/register.html">Створити акаунт</a></p>
 
     <script>
+        const API_URL = 'http://localhost:3000';
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -26,8 +28,9 @@
                 password: document.getElementById('password').value
             };
 
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
@@ -40,7 +43,6 @@
                 return;
             }
 
-            localStorage.setItem('token', data.token);
             window.location.href = '/index.html';
         });
     </script>
