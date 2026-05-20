@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
@@ -11,6 +12,7 @@ const AppError = require('./utils/AppError');
 const app = express();
 const port = process.env.PORT || 3000;
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+const publicDir = path.resolve(__dirname, '..', 'public');
 
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5500',
@@ -19,13 +21,10 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static('public'));
+app.use(express.static(publicDir));
 
 app.get('/', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Sports Events API is running'
-    });
+    res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 app.use('/api/auth', authRoutes);
