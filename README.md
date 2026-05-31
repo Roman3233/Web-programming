@@ -6,6 +6,18 @@
 
 Node.js, Express 5, MongoDB (Mongoose), JWT, bcryptjs, Joi, cookie-parser, CORS
 
+### Деплой
+
+Проєкт задеплоєно на **Render**: [https://web-programming-sb42.onrender.com](https://web-programming-sb42.onrender.com)
+
+Доступні сторінки:
+
+- `/` або `/index.html` — список подій
+- `/login.html` — вхід
+- `/register.html` — реєстрація
+- `/create.html` — створення події
+- `/registration.html?eventId=...` — реєстрація на подію
+
 ## Встановлення та запуск
 
 ```bash
