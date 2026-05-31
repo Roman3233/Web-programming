@@ -4,20 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sports Events</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .wrap {
+            max-width: 920px;
+            margin: 0 auto;
+            background: rgba(17, 24, 39, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        nav {
+            margin: 12px 0 20px;
+        }
+
+        a {
+            color: #7dd3fc;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            gap: 14px;
+        }
+
+        li {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .actions {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #00111b;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <h1>Події</h1>
+    <main class="wrap">
+        <h1>Події</h1>
 
-    <nav>
-        <a href="/login.html">Увійти</a> |
-        <a href="/register.html">Реєстрація</a> |
-        <a href="/create.html">Додати подію</a>
-    </nav>
+        <nav>
+            <a href="/login.html">Увійти</a> |
+            <a href="/register.html">Реєстрація</a> |
+            <a href="/create.html">Додати подію</a>
+        </nav>
 
-    <button id="logoutBtn" type="button">Вийти</button>
+        <div class="actions">
+            <button id="logoutBtn" type="button">Вийти</button>
+        </div>
 
-    <p id="message"></p>
-    <ul id="eventList"></ul>
+        <p id="message"></p>
+        <ul id="eventList"></ul>
+    </main>
 
     <script>
         const API_URL = 'http://localhost:3000';
@@ -46,7 +117,8 @@
                     <strong>${event.name}</strong> - ${event.sport}<br>
                     Дата: ${new Date(event.date).toLocaleString('uk-UA')}<br>
                     Локація: ${event.location}<br>
-                    Макс. учасників: ${event.maxParticipants}
+                    Макс. учасників: ${event.maxParticipants}<br>
+                    <a href="/registration.html?eventId=${event._id}">Зареєструватися</a>
                 </li>
             `).join('');
         }
