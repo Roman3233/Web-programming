@@ -4,53 +4,198 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Реєстрація</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --error: #ef4444;
+            --ok: #22c55e;
+            --accent: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: var(--text);
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .card {
+            width: min(100%, 520px);
+            background: rgba(17, 24, 39, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        h1 { margin-top: 0; }
+        .field { margin-bottom: 16px; }
+        input {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: #0b1220;
+            color: var(--text);
+            outline: none;
+        }
+        input::placeholder { color: var(--muted); }
+        input.error { border-color: var(--error); }
+        input.valid { border-color: var(--ok); }
+        .field-error { display: block; min-height: 18px; color: #fca5a5; font-size: 12px; margin-top: 6px; }
+        #submitBtn {
+            width: 100%;
+            padding: 12px 14px;
+            border: 0;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #00111b;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        #submitBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #serverErrors { margin-bottom: 16px; }
+        #serverErrors p { color: #fca5a5; margin: 6px 0; }
+        a { color: #7dd3fc; }
+    </style>
 </head>
 <body>
-    <h1>Реєстрація</h1>
+    <main class="card">
+        <h1>Реєстрація</h1>
+        <div id="serverErrors"></div>
 
-    <form id="registerForm">
-        <input type="text" id="name" placeholder="Ім'я" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Пароль" required>
-        <input type="password" id="confirmPassword" placeholder="Підтвердіть пароль" required>
-        <button type="submit">Зареєструватися</button>
-    </form>
+        <form id="registerForm" novalidate>
+            <div class="field">
+                <input type="text" id="name" placeholder="Ім'я" required>
+                <span class="field-error" id="nameError"></span>
+            </div>
 
-    <p id="message"></p>
-    <p><a href="/login.html">Вже є акаунт? Увійти</a></p>
+            <div class="field">
+                <input type="email" id="email" placeholder="Email" required>
+                <span class="field-error" id="emailError"></span>
+            </div>
+
+            <div class="field">
+                <input type="password" id="password" placeholder="Пароль (мін. 6 символів)" required>
+                <span class="field-error" id="passwordError"></span>
+            </div>
+
+            <div class="field">
+                <input type="password" id="confirmPassword" placeholder="Підтвердіть пароль" required>
+                <span class="field-error" id="confirmError"></span>
+            </div>
+
+            <button type="submit" id="submitBtn" disabled>Зареєструватися</button>
+        </form>
+
+        <p><a href="/login.html">Вже є акаунт? Увійти</a></p>
+    </main>
 
     <script>
         const API_URL = 'http://localhost:3000';
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirmPassword');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function setError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+
+            input.classList.add('error');
+            input.classList.remove('valid');
+            error.textContent = message;
+        }
+
+        function setValid(inputId, errorId) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+
+            input.classList.remove('error');
+            input.classList.add('valid');
+            error.textContent = '';
+        }
+
+        function validateAll() {
+            let valid = true;
+
+            if (nameInput.value.trim().length < 2) {
+                setError('name', 'nameError', 'Мінімум 2 символи');
+                valid = false;
+            } else {
+                setValid('name', 'nameError');
+            }
+
+            if (!emailInput.value.includes('@')) {
+                setError('email', 'emailError', 'Некоректний email');
+                valid = false;
+            } else {
+                setValid('email', 'emailError');
+            }
+
+            if (passwordInput.value.length < 6) {
+                setError('password', 'passwordError', 'Мінімум 6 символів');
+                valid = false;
+            } else {
+                setValid('password', 'passwordError');
+            }
+
+            if (confirmInput.value !== passwordInput.value || !confirmInput.value) {
+                setError('confirmPassword', 'confirmError', 'Паролі не збігаються');
+                valid = false;
+            } else {
+                setValid('confirmPassword', 'confirmError');
+            }
+
+            submitBtn.disabled = !valid;
+        }
+
+        [nameInput, emailInput, passwordInput, confirmInput].forEach((input) => {
+            input.addEventListener('input', validateAll);
+            input.addEventListener('blur', validateAll);
+        });
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            document.getElementById('serverErrors').innerHTML = '';
+            validateAll();
 
-            const body = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                confirmPassword: document.getElementById('confirmPassword').value
-            };
+            if (submitBtn.disabled) {
+                return;
+            }
 
             const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+                body: JSON.stringify({
+                    name: nameInput.value.trim(),
+                    email: emailInput.value.trim(),
+                    password: passwordInput.value,
+                    confirmPassword: confirmInput.value
+                })
             });
 
             const data = await response.json();
-            const message = document.getElementById('message');
 
             if (!response.ok) {
-                message.textContent = data.message || 'Помилка реєстрації';
+                const container = document.getElementById('serverErrors');
+                const msgs = data.errors || [data.message];
+                container.innerHTML = msgs.map((message) => `<p>${message}</p>`).join('');
                 return;
             }
 
-            message.textContent = 'Реєстрація успішна!';
-            setTimeout(() => {
-                window.location.href = '/index.html';
-            }, 1000);
+            window.location.href = '/index.html';
         });
     </script>
 </body>

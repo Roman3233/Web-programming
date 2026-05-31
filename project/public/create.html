@@ -4,37 +4,199 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Створити подію</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --error: #ef4444;
+            --ok: #22c55e;
+            --accent: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: var(--text);
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .card {
+            width: min(100%, 560px);
+            background: rgba(17, 24, 39, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .meta {
+            color: var(--muted);
+            margin-bottom: 18px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: #0b1220;
+            color: var(--text);
+            outline: none;
+        }
+
+        input::placeholder { color: var(--muted); }
+        input.error { border-color: var(--error); }
+        input.valid { border-color: var(--ok); }
+        .field-error { display: block; min-height: 18px; color: #fca5a5; font-size: 12px; margin-top: 6px; }
+        #submitBtn {
+            width: 100%;
+            padding: 12px 14px;
+            border: 0;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #00111b;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        #submitBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #serverErrors { margin-bottom: 16px; }
+        #serverErrors p { color: #fca5a5; margin: 6px 0; }
+        a { color: #7dd3fc; }
+    </style>
 </head>
 <body>
-    <h1>Додати подію</h1>
+    <main class="card">
+        <h1>Додати подію</h1>
+        <p id="eventInfo" class="meta">Створення нової події</p>
+        <div id="serverErrors"></div>
 
-    <form id="createForm">
-        <input type="text" id="name" placeholder="Назва події" required>
-        <input type="text" id="sport" placeholder="Вид спорту" required>
-        <input type="datetime-local" id="date" required>
-        <input type="text" id="location" placeholder="Локація" required>
-        <input type="number" id="maxParticipants" placeholder="Макс. учасників" min="1" required>
-        <button type="submit">Додати</button>
-    </form>
+        <form id="createForm" novalidate>
+            <div class="field">
+                <input type="text" id="name" placeholder="Назва події" required>
+                <span class="field-error" id="nameError"></span>
+            </div>
 
-    <p id="message"></p>
-    <p><a href="/index.html">Назад до списку</a></p>
+            <div class="field">
+                <input type="text" id="sport" placeholder="Вид спорту" required>
+                <span class="field-error" id="sportError"></span>
+            </div>
+
+            <div class="field">
+                <input type="datetime-local" id="date" required>
+                <span class="field-error" id="dateError"></span>
+            </div>
+
+            <div class="field">
+                <input type="text" id="location" placeholder="Локація" required>
+                <span class="field-error" id="locationError"></span>
+            </div>
+
+            <div class="field">
+                <input type="number" id="maxParticipants" placeholder="Макс. учасників" min="1" required>
+                <span class="field-error" id="maxParticipantsError"></span>
+            </div>
+
+            <button type="submit" id="submitBtn" disabled>Створити подію</button>
+        </form>
+
+        <p><a href="/index.html">Назад до списку</a></p>
+    </main>
 
     <script>
         const API_URL = 'http://localhost:3000';
+        const nameInput = document.getElementById('name');
+        const sportInput = document.getElementById('sport');
+        const dateInput = document.getElementById('date');
+        const locationInput = document.getElementById('location');
+        const maxParticipantsInput = document.getElementById('maxParticipants');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function setError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+
+            input.classList.add('error');
+            input.classList.remove('valid');
+            error.textContent = message;
+        }
+
+        function setValid(inputId, errorId) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+
+            input.classList.remove('error');
+            input.classList.add('valid');
+            error.textContent = '';
+        }
+
+        function validateAll() {
+            let valid = true;
+
+            if (nameInput.value.trim().length < 2) {
+                setError('name', 'nameError', 'Мінімум 2 символи');
+                valid = false;
+            } else {
+                setValid('name', 'nameError');
+            }
+
+            if (sportInput.value.trim().length < 2) {
+                setError('sport', 'sportError', 'Мінімум 2 символи');
+                valid = false;
+            } else {
+                setValid('sport', 'sportError');
+            }
+
+            if (!dateInput.value) {
+                setError('date', 'dateError', 'Оберіть дату');
+                valid = false;
+            } else {
+                setValid('date', 'dateError');
+            }
+
+            if (locationInput.value.trim().length < 2) {
+                setError('location', 'locationError', 'Мінімум 2 символи');
+                valid = false;
+            } else {
+                setValid('location', 'locationError');
+            }
+
+            const participants = Number(maxParticipantsInput.value);
+            if (!participants || participants < 1) {
+                setError('maxParticipants', 'maxParticipantsError', 'Мінімум 1 учасник');
+                valid = false;
+            } else {
+                setValid('maxParticipants', 'maxParticipantsError');
+            }
+
+            submitBtn.disabled = !valid;
+        }
+
+        [nameInput, sportInput, dateInput, locationInput, maxParticipantsInput].forEach((input) => {
+            input.addEventListener('input', validateAll);
+            input.addEventListener('blur', validateAll);
+        });
 
         document.getElementById('createForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            document.getElementById('serverErrors').innerHTML = '';
+            validateAll();
 
-            const message = document.getElementById('message');
-
-            const body = {
-                name: document.getElementById('name').value,
-                sport: document.getElementById('sport').value,
-                date: new Date(document.getElementById('date').value).toISOString(),
-                location: document.getElementById('location').value,
-                maxParticipants: Number(document.getElementById('maxParticipants').value)
-            };
+            if (submitBtn.disabled) {
+                return;
+            }
 
             const response = await fetch(`${API_URL}/api/events`, {
                 method: 'POST',
@@ -42,20 +204,25 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(body)
+                body: JSON.stringify({
+                    name: nameInput.value.trim(),
+                    sport: sportInput.value.trim(),
+                    date: new Date(dateInput.value).toISOString(),
+                    location: locationInput.value.trim(),
+                    maxParticipants: Number(maxParticipantsInput.value)
+                })
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                message.textContent = data.message || 'Не вдалося створити подію';
+                const container = document.getElementById('serverErrors');
+                const msgs = data.errors || [data.message];
+                container.innerHTML = msgs.map((message) => `<p>${message}</p>`).join('');
                 return;
             }
 
-            message.textContent = 'Подію додано!';
-            setTimeout(() => {
-                window.location.href = '/index.html';
-            }, 1000);
+            window.location.href = '/index.html';
         });
     </script>
 </body>
